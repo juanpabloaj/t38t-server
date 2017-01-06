@@ -1,0 +1,13 @@
+{
+  "name": "t38t-server",
+  "version": "0.1.0",
+  "description": "Tile38 and threejs",
+  "main": "index.js",
+  "scripts": {},
+  "author": "JuanPabloAJ",
+  "license": "MIT",
+  "dependencies": {
+    "redis": "^2.6.3",
+    "ws": "^1.1.1"
+  }
+}
