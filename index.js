@@ -1,7 +1,13 @@
 var WebSocketServer = require('ws').Server
   , wss = new WebSocketServer({port:8080});
 
+var winston = require('winston');
+winston.remove(winston.transports.Console);
+winston.add(winston.transports.Console, {'timestamp':true});
+
 var utils = require('./lib/utils');
+
+winston.info('Starting T38T WebSocketServer');
 
 wss.on('connection', function connection(ws) {
   var name;
@@ -9,7 +15,7 @@ wss.on('connection', function connection(ws) {
     var data = JSON.parse(message);
     if (data.message == 'init') {
       var ship = utils.createShip();
-      console.log("Hello Ship %s", ship.name);
+      winston.info("Hello Ship %s", ship.name);
       name = ship.name;
       ws.send(JSON.stringify({
         message: "init", name: ship.name, lat:ship.lat, lng:ship.lng
@@ -43,7 +49,7 @@ wss.on('connection', function connection(ws) {
   ws.on('close', function close() {
     if (name) {
       utils.shipToRock(name);
-      console.log('Bye bye Ship %s, hello rock %s', name, name);
+      winston.info('Bye bye Ship %s, hello rock %s', name, name);
     }
   });
 });

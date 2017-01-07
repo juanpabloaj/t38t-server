@@ -8,6 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "redis": "^2.6.3",
+    "winston": "^2.3.0",
     "ws": "^1.1.1"
   }
 }
