@@ -1,5 +1,5 @@
-var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({port:8080});
+var WebSocketServer = require('ws').Server;
+var wss = new WebSocketServer({port:8080});
 
 var winston = require('winston');
 winston.remove(winston.transports.Console);
@@ -12,6 +12,7 @@ winston.info('Starting T38T WebSocketServer');
 wss.on('connection', function connection(ws) {
   var name;
   ws.on('message', function incomming(message) {
+    // check if message is JSON
     var data = JSON.parse(message);
     if (data.message == 'init') {
       var ship = utils.createShip();
@@ -22,7 +23,6 @@ wss.on('connection', function connection(ws) {
       }));
     }
     if (data.message == 'set position') {
-      // check if message is JSON
       name = data.name;
       var lat = data.lat;
       var lng = data.lng;
@@ -43,6 +43,12 @@ wss.on('connection', function connection(ws) {
       utils.fenceRoamObj("ships", data.name, "rocks", function(data) {
         if ( data && data !== "OK" && ws.readyState === 1 )
           ws.send(JSON.stringify({message:"show collitions", data:data}));
+      });
+    }
+    if (data.message === 'new ships') {
+      utils.fenceDetect('ships', 'set', 'enter', function(data) {
+        if ( data && ws.readyState === 1 )
+          ws.send(JSON.stringify({message:"new ships", data:data}));
       });
     }
   });
