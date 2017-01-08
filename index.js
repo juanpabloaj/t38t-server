@@ -14,7 +14,7 @@ wss.on('connection', function connection(ws) {
   ws.on('message', function incomming(message) {
     // check if message is JSON
     var data = JSON.parse(message);
-    if (data.message == 'init') {
+    if (data.message === 'init') {
       var ship = utils.createShip();
       winston.info("Hello Ship %s", ship.name);
       name = ship.name;
@@ -22,27 +22,38 @@ wss.on('connection', function connection(ws) {
         message: "init", name: ship.name, lat:ship.lat, lng:ship.lng
       }));
     }
-    if (data.message == 'set position') {
+    if (data.message === 'set position') {
       name = data.name;
       var lat = data.lat;
       var lng = data.lng;
       if (name && lat && lng)
         utils.updatePosition(name, lat, lng);
     }
-    if (data.message == 'scan rocks') {
+    if (data.message === 'scan rocks') {
       utils.scanCollection('rocks', function(data){
         ws.send(JSON.stringify({message:"rocks", data:data[1]}));
       });
     }
-    if (data.message == 'scan ships') {
+    if (data.message === 'scan ships') {
       utils.scanCollection('ships', function(data){
         ws.send(JSON.stringify({message:"ships", data:data[1]}));
+      });
+    }
+    if (data.message === 'scan bullets') {
+      utils.scanCollection('bullets', function(data){
+        ws.send(JSON.stringify({message:"bullets", data:data[1]}));
       });
     }
     if (data.message === 'show collitions') {
       utils.fenceRoamObj("ships", data.name, "rocks", function(data) {
         if ( data && data !== "OK" && ws.readyState === 1 )
-          ws.send(JSON.stringify({message:"show collitions", data:data}));
+          if (JSON.parse(data).command)
+            ws.send(JSON.stringify({message:"show collitions", data:data}));
+      });
+      utils.fenceRoamObj("ships", data.name, "bullets", function(data) {
+        if ( data && data !== "OK" && ws.readyState === 1 )
+          if (JSON.parse(data).command)
+            ws.send(JSON.stringify({message:"show collitions", data:data}));
       });
     }
     if (data.message === 'new ships') {
@@ -50,6 +61,9 @@ wss.on('connection', function connection(ws) {
         if ( data && ws.readyState === 1 )
           ws.send(JSON.stringify({message:"new ships", data:data}));
       });
+    }
+    if ( data.message === "bullet" ) {
+      utils.createBullet(data);
     }
   });
   ws.on('close', function close() {
