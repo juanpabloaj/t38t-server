@@ -12,6 +12,8 @@ winston.info('Starting T38T WebSocketServer');
 wss.on('connection', function connection(ws) {
   var name;
   var remoteAddress = ws.upgradeReq.connection.remoteAddress;
+  var tile38Websockets = [];
+
   ws.on('message', function incomming(message) {
     // check if message is JSON
     var data = JSON.parse(message);
@@ -48,32 +50,41 @@ wss.on('connection', function connection(ws) {
           ws.send(JSON.stringify({message:"bullets", data:data[1]}));
       });
     }
+
     if (data.message === 'show collitions') {
-      utils.fenceRoamObj("ships", data.name, "rocks", function(data) {
-        if ( data && data !== "OK" && ws.readyState === 1 )
-          if (JSON.parse(data).command)
-            ws.send(JSON.stringify({message:"show collitions", data:data}));
+      var rocksWs = utils.fenceRoamObj("ships", data.name, "rocks", function(data) {
+        if ( ws.readyState === 1 )
+          ws.send(JSON.stringify({message:"show collitions", data:data}));
       });
-      utils.fenceRoamObj("ships", data.name, "bullets", function(data) {
-        if ( data && data !== "OK" && ws.readyState === 1 )
-          if (JSON.parse(data).command)
-            ws.send(JSON.stringify({message:"show collitions", data:data}));
+      tile38Websockets.push(rocksWs);
+
+      var bulletsWs = utils.fenceRoamObj("ships", data.name, "bullets", function(data) {
+        if ( ws.readyState === 1 )
+          ws.send(JSON.stringify({message:"show collitions", data:data}));
       });
+      tile38Websockets.push(bulletsWs);
     }
+
     if (data.message === 'new ships') {
-      utils.fenceDetect('ships', 'set', 'enter', function(data) {
-        if ( data && ws.readyState === 1 )
+      var detectWs = utils.fenceDetect('ships', 'set', 'enter', function(data) {
+        if ( ws.readyState === 1 )
           ws.send(JSON.stringify({message:"new ships", data:data}));
       });
+      tile38Websockets.push(detectWs);
     }
+
     if ( data.message === "bullet" ) {
       utils.createBullet(data);
     }
+
   });
   ws.on('close', function close() {
     if (name) {
       utils.shipToRock(name);
       winston.info('%s Bye bye Ship %s, hello rock %s', remoteAddress, name, name);
+
+      for (var tile38ws of tile38Websockets)
+        tile38ws.close();
     }
   });
 });
