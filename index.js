@@ -11,12 +11,13 @@ winston.info('Starting T38T WebSocketServer');
 
 wss.on('connection', function connection(ws) {
   var name;
+  var remoteAddress = ws.upgradeReq.connection.remoteAddress;
   ws.on('message', function incomming(message) {
     // check if message is JSON
     var data = JSON.parse(message);
     if (data.message === 'init') {
       var ship = utils.createShip();
-      winston.info("Hello Ship %s", ship.name);
+      winston.info("%s Hello Ship %s", remoteAddress, ship.name);
       name = ship.name;
       ws.send(JSON.stringify({
         message: "init", name: ship.name, lat:ship.lat, lng:ship.lng
@@ -72,7 +73,7 @@ wss.on('connection', function connection(ws) {
   ws.on('close', function close() {
     if (name) {
       utils.shipToRock(name);
-      winston.info('Bye bye Ship %s, hello rock %s', name, name);
+      winston.info('%s Bye bye Ship %s, hello rock %s', remoteAddress, name, name);
     }
   });
 });
