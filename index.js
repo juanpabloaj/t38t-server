@@ -31,17 +31,20 @@ wss.on('connection', function connection(ws) {
     }
     if (data.message === 'scan rocks') {
       utils.scanCollection('rocks', function(data){
-        ws.send(JSON.stringify({message:"rocks", data:data[1]}));
+        if ( ws.readyState === 1 )
+          ws.send(JSON.stringify({message:"rocks", data:data[1]}));
       });
     }
     if (data.message === 'scan ships') {
       utils.scanCollection('ships', function(data){
-        ws.send(JSON.stringify({message:"ships", data:data[1]}));
+        if ( ws.readyState === 1 )
+          ws.send(JSON.stringify({message:"ships", data:data[1]}));
       });
     }
     if (data.message === 'scan bullets') {
       utils.scanCollection('bullets', function(data){
-        ws.send(JSON.stringify({message:"bullets", data:data[1]}));
+        if ( ws.readyState === 1 )
+          ws.send(JSON.stringify({message:"bullets", data:data[1]}));
       });
     }
     if (data.message === 'show collitions') {
